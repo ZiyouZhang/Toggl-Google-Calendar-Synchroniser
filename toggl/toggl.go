@@ -2,6 +2,7 @@ package toggl
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -32,11 +33,19 @@ func TimeEntries() {
 	}
 	fmt.Println(apiKey)
 	req.SetBasicAuth(apiKey, authPassword)
+	fmt.Println(req.URL)
 	resp, err := c.Do(req)
 	if err != nil {
 		log.Printf("Error when querying url: %v", err)
 	}
-	fmt.Print(resp.Status)
+	defer resp.Body.Close()
+	resBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Status: %d\n", resp.StatusCode)
+	fmt.Printf("Body: %s\n", string(resBody))
 }
 
 func Bar() bool {
