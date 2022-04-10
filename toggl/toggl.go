@@ -20,7 +20,7 @@ var (
 	apiKey      = os.Getenv("TOGGL_API_TOKEN")
 )
 
-func TimeEntries(token string) {
+func TimeEntries() {
 	today := time.Now().Format(layoutISO)
 	yearAgo := time.Now().AddDate(-1, 0, 0).Format(layoutISO)
 	url := fmt.Sprintf("%v?workspace_id=%v&since=%v&until=%v&user_agent=%v", URL, workspaceId, yearAgo, today, userAgent)
