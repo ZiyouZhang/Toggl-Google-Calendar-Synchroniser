@@ -1,16 +1,15 @@
 package toggl
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"os"
-	"time"
 )
 
 const (
-	URL          = "https://api.track.toggl.com/reports/api/v2/details"
 	layoutISO    = "2006-01-02"
 	authPassword = "api_token"
 	userAgent    = "application"
@@ -22,30 +21,45 @@ var (
 )
 
 func TimeEntries() {
-	today := time.Now().Format(layoutISO)
-	yearAgo := time.Now().AddDate(-1, 0, 0).Format(layoutISO)
-	url := fmt.Sprintf("%v?workspace_id=%v&since=%v&until=%v&user_agent=%v", URL, workspaceId, yearAgo, today, userAgent)
-	fmt.Println(url)
-	c := http.Client{Timeout: time.Duration(10) * time.Second}
-	req, err := http.NewRequest("Get", url, nil)
-	if err != nil {
-		log.Printf("Error when generating request: %v", err)
-	}
-	fmt.Println(apiKey)
-	req.SetBasicAuth(apiKey, authPassword)
-	fmt.Println(req.URL)
-	resp, err := c.Do(req)
-	if err != nil {
-		log.Printf("Error when querying url: %v", err)
-	}
-	defer resp.Body.Close()
-	resBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatal(err)
+	// Get project mapping
+	projectMapping := make(map[string]string)
+	projects := requestData("https://api.track.toggl.com/api/v9/workspaces/" + workspaceId + "/projects")
+	for _, p := range projects {
+		pid := fmt.Sprint(p["id"])
+		pname := fmt.Sprint(p["name"])
+		projectMapping[pid] = pname
 	}
 
-	fmt.Printf("Status: %d\n", resp.StatusCode)
-	fmt.Printf("Body: %s\n", string(resBody))
+	entries := requestData("https://api.track.toggl.com/api/v9/me/time_entries")
+	for _, e := range entries {
+		projectName := projectMapping[fmt.Sprint(e["project_id"])]
+		fmt.Println(e["start"], e["stop"], e["description"], projectName)
+	}
+}
+
+func requestData(url string) []map[string]any {
+	var result []map[string]any
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		log.Print(err)
+	}
+	req.Header.Set("Content-Type", "application/json; charset=utf-8")
+	req.SetBasicAuth(apiKey, authPassword)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Print(err)
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Print(err)
+	}
+	err = json.Unmarshal([]byte(body), &result)
+	if err != nil {
+		log.Print(err)
+	}
+	return result
 }
 
 func Bar() bool {
