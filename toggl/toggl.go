@@ -7,12 +7,12 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 const (
 	layoutISO    = "2006-01-02"
 	authPassword = "api_token"
-	userAgent    = "application"
 )
 
 var (
@@ -30,11 +30,16 @@ func TimeEntries() {
 		projectMapping[pid] = pname
 	}
 
-	entries := requestData("https://api.track.toggl.com/api/v9/me/time_entries")
+	currDate := time.Now()
+	entries := requestData(fmt.Sprintf("https://api.track.toggl.com/api/v9/me/time_entries?start_date=%v&end_date=%v", sub90Days(currDate).Format(layoutISO), currDate.Format(layoutISO)))
 	for _, e := range entries {
 		projectName := projectMapping[fmt.Sprint(e["project_id"])]
 		fmt.Println(e["start"], e["stop"], e["description"], projectName)
 	}
+}
+
+func sub90Days(originalTime time.Time) time.Time {
+	return originalTime.AddDate(0, 0, -90)
 }
 
 func requestData(url string) []map[string]any {
