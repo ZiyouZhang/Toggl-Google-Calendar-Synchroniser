@@ -1,2 +1,8 @@
 # Toggl-Google-Calendar-Synchroniser
-A go server to synchronise Toggl entries in Google Calendar
+Scripts for synchronise toggle entries with google calendar.
+
+## Go Implementation
+Under development.
+
+## App Script Implementation
+Published prototype version.
