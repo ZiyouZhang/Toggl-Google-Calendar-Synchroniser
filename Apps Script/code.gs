@@ -63,6 +63,9 @@ function getTogglEntries() {
   var entries = JSON.parse(response)
   var togglEntries = {}
   for (e of entries) {
+    if (e.server_deleted_at) { // Skip if it is deleted.
+      continue
+    }
     var startTime = new Date(e.start)
     if (e.stop && Math.floor(startTime.getTime() / 1000) > lastEntryTime) {
       togglEntries[e.id] = {
