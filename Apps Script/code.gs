@@ -70,7 +70,8 @@ function getTogglEntries() {
     if (e.stop && Math.floor(startTime.getTime() / 1000) > lastEntryTime) {
       togglEntries[e.id] = {
         "id": e.id,
-        "title": Utilities.formatString("%s: %s", mapping[e.project_id], e.description),
+        // The || operator handles the cases where project name / description is empty.
+        "title": Utilities.formatString("%s: %s", mapping[e.project_id] || '', e.description  || ''),
         "start": new Date(e.start),
         "end": new Date(e.stop)
       }
